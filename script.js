@@ -1,24 +1,279 @@
-const products=[
-{name:'Main Character',file:'main-character',photo:'render-6.jpeg',color:'#df6b22',light:'#ffcf89',shadow:'#9c451c',group:'bold'},
-{name:'Obsessed',file:'obsessed',photo:'render-3.jpeg',color:'#e48baa',light:'#fbd3df',shadow:'#873452',group:'soft'},
-{name:'Night Tale',file:'night-story',photo:'render-2.jpeg',color:'#10284a',light:'#58779c',shadow:'#111b31',group:'afterdark'},
-{name:'Soft Chaos',file:'soft-chaos',photo:'render-4.jpeg',color:'#d8c7a9',light:'#f4e9d7',shadow:'#8e7865',group:'soft'},
-{name:'Midnight Mood',file:'midnight-mood',photo:'render-3.jpeg',color:'#a61c23',light:'#e7523b',shadow:'#321721',group:'afterdark'},
-{name:'Gold Rush',file:'gold-rush',photo:'render-6.jpeg',color:'#e49a16',light:'#ffd76d',shadow:'#926026',group:'bold'},
-{name:'Dark Desire',file:'dark-desire',photo:'render-4.jpeg',color:'#12382a',light:'#38724d',shadow:'#0b211d',group:'afterdark'},
-{name:'Daydreamer',file:'daydreamer',photo:'render-5.jpeg',color:'#73b8e4',light:'#c1e4f4',shadow:'#347ba1',group:'soft'},
-{name:'Delulu',file:'delulu',photo:'render-3.jpeg',color:'#aa80c1',light:'#e4bee7',shadow:'#714882',group:'soft'},
-{name:'2 AM',file:'2am',photo:'render-1.jpeg',color:'#25252b',light:'#57545b',shadow:'#111116',group:'afterdark'}
+const products = [
+  { id: 1, name: "L'Amour", type: 'EAU DE PARFUM', price: '$128.00', file: 'obsessed', photo: 'render-3.jpeg', color: '#e48baa', group: 'soft', category: 'Floral Bouquets' },
+  { id: 2, name: 'Rose Noir', type: 'EXTRAIT DE PARFUM', price: '$158.00', file: 'midnight-mood', photo: 'render-2.jpeg', color: '#a61c23', group: 'afterdark', category: 'Warm & Sensual' },
+  { id: 3, name: 'Eau de Lumière', type: 'EAU DE PARFUM', price: '$128.00', file: 'daydreamer', photo: 'render-5.jpeg', color: '#73b8e4', group: 'soft', category: 'Fresh & Radiant' },
+  { id: 4, name: 'Jardin Secrète', type: 'EAU DE PARFUM', price: '$118.00', file: 'soft-chaos', photo: 'render-4.jpeg', color: '#d8c7a9', group: 'soft', category: 'Floral Bouquets' },
+  { id: 5, name: 'Veloura Intense', type: 'EXTRAIT DE PARFUM', price: '$168.00', file: 'dark-desire', photo: 'render-1.jpeg', color: '#12382a', group: 'afterdark', category: 'Exclusive Collection' },
+  { id: 6, name: 'Main Character', type: 'EAU DE PARFUM', price: '$135.00', file: 'main-character', photo: 'render-6.jpeg', color: '#df6b22', group: 'bold', category: 'Fresh & Radiant' },
+  { id: 7, name: 'Gold Rush', type: 'EXTRAIT DE PARFUM', price: '$175.00', file: 'gold-rush', photo: 'render-6.jpeg', color: '#e49a16', group: 'bold', category: 'Exclusive Collection' },
+  { id: 8, name: 'Night Story', type: 'EAU DE PARFUM', price: '$145.00', file: 'night-story', photo: 'render-2.jpeg', color: '#10284a', group: 'afterdark', category: 'Warm & Sensual' },
+  { id: 9, name: 'Delulu', type: 'EAU DE PARFUM', price: '$125.00', file: 'delulu', photo: 'render-3.jpeg', color: '#aa80c1', group: 'soft', category: 'Floral Bouquets' },
+  { id: 10, name: '2 AM', type: 'EXTRAIT DE PARFUM', price: '$160.00', file: '2am', photo: 'render-1.jpeg', color: '#25252b', group: 'afterdark', category: 'Warm & Sensual' }
 ];
-const grid=document.querySelector('#product-grid');let cart=[];let toastTimer;
-function render(list=products){grid.innerHTML=list.map((p,i)=>`<article class="product-card" style="animation-delay:${i*.035}s"><div class="product-visual photo-${p.photo.split('.')[0]}" style="background:radial-gradient(ellipse at 50% 45%,${p.light} 0%,${p.color}36 48%,${p.color}17 100%);--bottle-color:${p.color};--bottle-light:${p.light};--bottle-shadow:${p.shadow}"><div class="photo-stage"><img class="product-photo" src="assets/${p.photo}" alt="Vela Veli Vo ${p.name} perfume"><div class="native-label-mask"></div><img class="perfume-label" src="assets/${p.file}.png" alt="${p.name} fragrance label"></div><button class="quick-add" data-id="${p.file}">ADD TO BAG&nbsp; +</button></div><div class="product-info"><span class="product-name">${p.name}</span><span class="product-price">DISCOVER ↗</span><span class="product-notes">EAU DE PARFUM</span></div></article>`).join('')}
-function updateCart(){document.querySelectorAll('.bag-count').forEach(x=>x.textContent=cart.length);const items=document.querySelector('.cart-items'),content=document.querySelector('.cart-content');if(!cart.length){items.innerHTML='';content.hidden=false;return}content.hidden=true;items.innerHTML=cart.map((p,i)=>`<div class="cart-item"><img src="assets/${p.file}.png" alt=""><div class="cart-item-copy"><strong>${p.name}</strong><span>EAU DE PARFUM</span></div><button class="remove-item" data-index="${i}">Remove</button></div>`).join('')}
-grid.addEventListener('click',e=>{const b=e.target.closest('.quick-add');if(!b)return;const p=products.find(x=>x.file===b.dataset.id);cart.push(p);updateCart();const t=document.querySelector('.toast');t.textContent=`${p.name} added to your bag ✳`;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2100)});
-document.querySelector('.cart-items').addEventListener('click',e=>{const b=e.target.closest('.remove-item');if(!b)return;cart.splice(Number(b.dataset.index),1);updateCart()});
-document.querySelectorAll('.filter').forEach(b=>b.addEventListener('click',()=>{document.querySelector('.filter.active').classList.remove('active');b.classList.add('active');render(b.dataset.filter==='all'?products:products.filter(p=>p.group===b.dataset.filter))}));
-const overlay=document.querySelector('#overlay'),drawer=document.querySelector('.cart-drawer');function openBag(){overlay.classList.add('open');drawer.classList.add('open');document.body.style.overflow='hidden'}function closeBag(){overlay.classList.remove('open');drawer.classList.remove('open');document.body.style.overflow=''}document.querySelector('.bag-btn').addEventListener('click',openBag);document.querySelector('.close-drawer').addEventListener('click',closeBag);overlay.addEventListener('click',closeBag);document.querySelector('.continue').addEventListener('click',closeBag);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBag()});
-document.querySelector('.signup').addEventListener('submit',e=>{e.preventDefault();document.querySelector('.signup-message').textContent='You’re on the list. Talk soon ✳';e.currentTarget.reset()});document.querySelector('.search-open').addEventListener('click',()=>{const row=document.querySelector('.search-row');row.hidden=false;document.querySelector('#collection').scrollIntoView({behavior:'smooth'});document.querySelector('#scent-search').focus()});document.querySelector('#scent-search').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();render(products.filter(p=>(p.name+' '+p.group).toLowerCase().includes(q)))});document.querySelector('.search-clear').addEventListener('click',()=>{document.querySelector('#scent-search').value='';render();document.querySelector('#scent-search').focus()});document.querySelector('.mobile-menu').addEventListener('click',()=>{document.querySelector('#collection').scrollIntoView({behavior:'smooth'});document.querySelector('.filter').focus()});render();
 
+const grid = document.querySelector('#product-grid');
+let cart = [];
+let wishlist = new Set();
+let toastTimer;
 
+function render(list = products) {
+  if (!grid) return;
+  grid.innerHTML = list
+    .map(
+      (p, i) => `
+    <article class="product-card" style="animation-delay:${i * 0.035}s">
+      <button class="wishlist-btn ${wishlist.has(p.id) ? 'active' : ''}" data-id="${p.id}" aria-label="Add to wishlist">
+        ${wishlist.has(p.id) ? '♥' : '♡'}
+      </button>
+      <div class="product-visual photo-${p.photo.split('.')[0]}">
+        <div class="photo-stage">
+          <img class="product-photo" src="assets/${p.photo}" alt="Veloura Parfums ${p.name} perfume">
+          <div class="native-label-mask"></div>
+          <img class="perfume-label" src="assets/${p.file}.png" alt="${p.name} fragrance label">
+        </div>
+      </div>
+      <div class="product-info">
+        <h3 class="product-name">${p.name}</h3>
+        <span class="product-type">${p.type}</span>
+        <span class="product-price">${p.price}</span>
+        <button class="quick-add dark-pill-btn" data-id="${p.file}">ADD TO CART</button>
+      </div>
+    </article>`
+    )
+    .join('');
+}
 
+const productScrollSection = document.querySelector('.product-scroll-section');
+const productScrollSlides = document.querySelector('.product-scroll-slides');
+const productScrollDots = document.querySelector('.product-scroll-dots');
+const productScrollCard = document.querySelector('.product-scroll-card');
+const productScrollAdd = document.querySelector('.product-scroll-add');
+let productScrollFrame = 0;
 
+function updateProductScroll(progress) {
+  if (!productScrollSection || !productScrollSlides || !productScrollCard) return;
+  const featured = products.slice(0, 5);
+  const index = Math.min(Math.floor(progress * featured.length), featured.length - 1);
+  const product = featured[index];
+  productScrollSlides.style.transform = `translateX(-${index * 100}%)`;
+  productScrollCard.style.setProperty('--card-color', product.color);
+  productScrollCard.querySelector('.product-scroll-count').textContent = `${String(index + 1).padStart(2, '0')} / 05`;
+  productScrollCard.querySelector('.product-scroll-name').textContent = product.name;
+  productScrollCard.querySelector('.product-scroll-type').textContent = product.type;
+  productScrollCard.querySelector('.product-scroll-copy').textContent = product.category === 'Warm & Sensual'
+    ? 'A velvety blend of depth, warmth, and quiet seduction.'
+    : product.category === 'Fresh & Radiant'
+      ? 'A bright, polished fragrance with a radiant clean finish.'
+      : 'A luminous fragrance with a soft, unforgettable trail.';
+  productScrollCard.querySelector('.product-scroll-price').textContent = product.price;
+  productScrollAdd.dataset.id = product.file;
+  productScrollDots.querySelectorAll('button').forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === index));
+}
+
+function initProductScroll() {
+  if (!productScrollSection || !productScrollSlides || !productScrollDots) return;
+  const featured = products.slice(0, 5);
+  productScrollSlides.innerHTML = featured.map((product) => `
+    <div class="product-scroll-slide">
+      <img src="assets/${product.photo}" alt="${product.name} perfume">
+      <span class="product-scroll-slide-label">${product.name}</span>
+    </div>`).join('');
+  productScrollDots.innerHTML = featured.map((product, index) => `<button type="button" aria-label="Show ${product.name}" data-index="${index}"></button>`).join('');
+  const update = () => {
+    productScrollFrame = 0;
+    const rect = productScrollSection.getBoundingClientRect();
+    const travel = Math.max(productScrollSection.offsetHeight - window.innerHeight, 1);
+    updateProductScroll(Math.min(Math.max(-rect.top / travel, 0), 1));
+  };
+  window.addEventListener('scroll', () => {
+    if (!productScrollFrame) productScrollFrame = requestAnimationFrame(update);
+  }, { passive: true });
+  productScrollDots.addEventListener('click', (event) => {
+    const dot = event.target.closest('button');
+    if (!dot) return;
+    const index = Number(dot.dataset.index);
+    const top = productScrollSection.offsetTop + (productScrollSection.offsetHeight - window.innerHeight) * (index / (featured.length - 1));
+    window.scrollTo({ top, behavior: 'smooth' });
+  });
+  update();
+}
+
+function updateCart() {
+  document.querySelectorAll('.bag-count').forEach((x) => (x.textContent = cart.length));
+  const items = document.querySelector('.cart-items');
+  const content = document.querySelector('.cart-content');
+  const totalEl = document.querySelector('.cart-total');
+
+  if (!cart.length) {
+    items.innerHTML = '';
+    content.hidden = false;
+    if (totalEl) totalEl.innerHTML = '';
+    return;
+  }
+  content.hidden = true;
+
+  const totalSum = cart.reduce((sum, item) => sum + parseFloat(item.price.replace('$', '')), 0);
+
+  items.innerHTML = cart
+    .map(
+      (p, i) => `
+    <div class="cart-item">
+      <img src="assets/${p.file}.png" alt="${p.name}">
+      <div class="cart-item-copy">
+        <strong>${p.name}</strong>
+        <span>${p.type}</span>
+        <span class="cart-item-price">${p.price}</span>
+      </div>
+      <button class="remove-item" data-index="${i}">×</button>
+    </div>`
+    )
+    .join('');
+
+  if (totalEl) {
+    totalEl.innerHTML = `
+      <span>Subtotal:</span>
+      <strong>$${totalSum.toFixed(2)}</strong>
+    `;
+  }
+}
+
+if (grid) {
+  grid.addEventListener('click', (e) => {
+    const wishBtn = e.target.closest('.wishlist-btn');
+    if (wishBtn) {
+      const id = Number(wishBtn.dataset.id);
+      if (wishlist.has(id)) {
+        wishlist.delete(id);
+      } else {
+        wishlist.add(id);
+      }
+      render();
+      return;
+    }
+
+    const b = e.target.closest('.quick-add');
+    if (!b) return;
+    const p = products.find((x) => x.file === b.dataset.id);
+    if (p) {
+      cart.push(p);
+      updateCart();
+      const t = document.querySelector('.toast');
+      if (t) {
+        t.textContent = `${p.name} added to your bag ✨`;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2100);
+      }
+    }
+  });
+}
+
+if (productScrollAdd) {
+  productScrollAdd.addEventListener('click', () => {
+    const product = products.find((item) => item.file === productScrollAdd.dataset.id);
+    if (!product) return;
+    cart.push(product);
+    updateCart();
+    const toast = document.querySelector('.toast');
+    if (toast) {
+      toast.textContent = `${product.name} added to your bag`;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2100);
+    }
+  });
+}
+
+const cartItems = document.querySelector('.cart-items');
+if (cartItems) {
+  cartItems.addEventListener('click', (e) => {
+    const b = e.target.closest('.remove-item');
+    if (!b) return;
+    cart.splice(Number(b.dataset.index), 1);
+    updateCart();
+  });
+}
+
+document.querySelectorAll('.filter').forEach((b) =>
+  b.addEventListener('click', () => {
+    const active = document.querySelector('.filter.active');
+    if (active) active.classList.remove('active');
+    b.classList.add('active');
+    const f = b.dataset.filter;
+    render(f === 'all' ? products : products.filter((p) => p.group === f || p.category.toLowerCase().includes(f)));
+  })
+);
+
+const overlay = document.querySelector('#overlay');
+const drawer = document.querySelector('.cart-drawer');
+
+function openBag() {
+  if (overlay) overlay.classList.add('open');
+  if (drawer) drawer.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBag() {
+  if (overlay) overlay.classList.remove('open');
+  if (drawer) drawer.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+const bagBtn = document.querySelector('.bag-btn');
+if (bagBtn) bagBtn.addEventListener('click', openBag);
+
+const closeDrawer = document.querySelector('.close-drawer');
+if (closeDrawer) closeDrawer.addEventListener('click', closeBag);
+
+if (overlay) overlay.addEventListener('click', closeBag);
+
+const continueBtn = document.querySelector('.continue');
+if (continueBtn) continueBtn.addEventListener('click', closeBag);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeBag();
+});
+
+const signupForm = document.querySelector('.signup');
+if (signupForm) {
+  signupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const msg = document.querySelector('.signup-message');
+    if (msg) msg.textContent = 'Thank you for subscribing to Veloura Parfums. ✨';
+    e.currentTarget.reset();
+  });
+}
+
+const searchOpen = document.querySelector('.search-open');
+if (searchOpen) {
+  searchOpen.addEventListener('click', () => {
+    const row = document.querySelector('.search-row');
+    if (row) {
+      row.hidden = false;
+      document.querySelector('#collection')?.scrollIntoView({ behavior: 'smooth' });
+      document.querySelector('#scent-search')?.focus();
+    }
+  });
+}
+
+const scentSearch = document.querySelector('#scent-search');
+if (scentSearch) {
+  scentSearch.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    render(products.filter((p) => (p.name + ' ' + p.group + ' ' + p.category).toLowerCase().includes(q)));
+  });
+}
+
+const searchClear = document.querySelector('.search-clear');
+if (searchClear) {
+  searchClear.addEventListener('click', () => {
+    if (scentSearch) {
+      scentSearch.value = '';
+      render();
+      scentSearch.focus();
+    }
+  });
+}
+
+render();
+initProductScroll();

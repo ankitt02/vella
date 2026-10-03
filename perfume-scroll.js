@@ -2,10 +2,10 @@
   'use strict';
 
   const DEBUG = false;
-  const FRAME_COUNT = 300;
-  const FRAME_PATH = 'assets/perfume-frames/ezgif-frame-';
+  const FRAME_COUNT = 600;
+  const FRAME_PATH = 'assets/scrollframes/frame-';
   const FRAME_EXT = '.jpg';
-  const SECTION_HEIGHT = '500vh';
+  const SECTION_HEIGHT = '550vh';
 
   const section = document.getElementById('perfume-scroll');
   const canvas = document.getElementById('perfume-canvas');
@@ -37,7 +37,6 @@
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // Force a redraw after any resize / pin layout change
     if (currentFrame >= 0) {
       const saved = currentFrame;
       currentFrame = -1;
@@ -45,13 +44,32 @@
     }
   }
 
+  function getNearestLoadedFrame(targetIndex) {
+    targetIndex = clamp(targetIndex, 0, FRAME_COUNT - 1);
+    if (frames[targetIndex] && frames[targetIndex].complete && frames[targetIndex].naturalWidth) {
+      return targetIndex;
+    }
+    for (let offset = 1; offset < FRAME_COUNT; offset++) {
+      const prev = targetIndex - offset;
+      if (prev >= 0 && frames[prev] && frames[prev].complete && frames[prev].naturalWidth) {
+        return prev;
+      }
+      const next = targetIndex + offset;
+      if (next < FRAME_COUNT && frames[next] && frames[next].complete && frames[next].naturalWidth) {
+        return next;
+      }
+    }
+    return -1;
+  }
+
   function drawFrame(index) {
-    const img = frames[index];
-    if (!img || !img.complete || !img.naturalWidth) return;
-    if (index === currentFrame) return;
+    const actualIndex = getNearestLoadedFrame(index);
+    if (actualIndex < 0) return;
+    if (actualIndex === currentFrame) return;
 
-    currentFrame = index;
+    currentFrame = actualIndex;
 
+    const img = frames[actualIndex];
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const cw = canvas.width / dpr;
     const ch = canvas.height / dpr;
@@ -59,14 +77,14 @@
 
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
-    // Slight zoom so the bottle fills more and empty black sky is cropped
-    const scale = Math.max(cw / iw, ch / ih) * 1.08;
+    const scale = Math.min(cw / iw, ch / ih);
     const dw = iw * scale;
     const dh = ih * scale;
     const dx = (cw - dw) / 2;
     const dy = (ch - dh) / 2;
 
-    ctx.clearRect(0, 0, cw, ch);
+    ctx.fillStyle = '#f7eee2';
+    ctx.fillRect(0, 0, cw, ch);
     ctx.drawImage(img, dx, dy, dw, dh);
   }
 
@@ -89,6 +107,31 @@
     });
   }
 
+  function updateScrollProduct(progress) {
+    const rail = section.querySelector('.perfume-product-rail');
+    const copy = section.querySelector('.perfume-scroll-copy');
+    const products = section.querySelectorAll('.scroll-product');
+    if (!rail || !copy || !products.length) return;
+
+    const productIndex = clamp(Math.floor(progress * products.length), 0, products.length - 1);
+    const product = products[productIndex];
+    if (!product) return;
+
+    products.forEach(function (item, index) {
+      item.classList.toggle('is-active', index === productIndex);
+    });
+
+    rail.style.setProperty('--product-index', productIndex);
+    section.style.setProperty('--product-color', product.dataset.color || '#ded5c6');
+    copy.classList.remove('is-entering');
+    void copy.offsetWidth;
+    copy.querySelector('.perfume-scroll-number').textContent = String(productIndex + 1).padStart(2, '0') + ' / 05';
+    copy.querySelector('.perfume-scroll-title').textContent = product.dataset.name;
+    copy.querySelector('.perfume-scroll-type').textContent = product.dataset.type;
+    copy.querySelector('.perfume-scroll-description').textContent = product.dataset.description;
+    copy.classList.add('is-entering');
+  }
+
   function createDebugOverlay() {
     if (!DEBUG) return;
     debugEl = document.createElement('div');
@@ -101,41 +144,57 @@
   function preloadFrames(onFirstFrame) {
     let firstShown = false;
 
-    for (let i = 0; i < FRAME_COUNT; i++) {
-      const img = new Image();
-      frames[i] = img;
+    // Load frame 0 first so user gets visual feedback instantly
+    const firstImg = new Image();
+    frames[0] = firstImg;
+    firstImg.onload = function () {
+      loadedCount++;
+      if (!firstShown) {
+        firstShown = true;
+        setupCanvasSize();
+        drawFrame(0);
+        if (onFirstFrame) onFirstFrame();
+      }
+      loadRemainingFrames();
+    };
+    firstImg.onerror = function () {
+      loadedCount++;
+      loadRemainingFrames();
+    };
+    firstImg.src = frameSrc(0);
 
-      img.onload = function () {
-        loadedCount++;
-        if (!firstShown && i === 0) {
-          firstShown = true;
-          setupCanvasSize();
-          drawFrame(0);
-          if (onFirstFrame) onFirstFrame();
-        } else if (i === currentFrame) {
-          const saved = currentFrame;
-          currentFrame = -1;
-          drawFrame(saved);
-        }
-        if (loadedCount === FRAME_COUNT && typeof ScrollTrigger !== 'undefined') {
-          ScrollTrigger.refresh();
-          setupCanvasSize();
-        }
-        updateDebug(
-          Math.max(currentFrame, 0),
-          currentFrame < 0 ? 0 : currentFrame / Math.max(FRAME_COUNT - 1, 1)
-        );
-      };
+    function loadRemainingFrames() {
+      for (let i = 1; i < FRAME_COUNT; i++) {
+        const img = new Image();
+        frames[i] = img;
 
-      img.onerror = function () {
-        loadedCount++;
-        if (loadedCount === FRAME_COUNT && typeof ScrollTrigger !== 'undefined') {
-          ScrollTrigger.refresh();
-          setupCanvasSize();
-        }
-      };
+        img.onload = function () {
+          loadedCount++;
+          if (i === currentFrame || currentFrame < 0) {
+            const saved = currentFrame < 0 ? 0 : currentFrame;
+            currentFrame = -1;
+            drawFrame(saved);
+          }
+          if (loadedCount === FRAME_COUNT && typeof ScrollTrigger !== 'undefined') {
+            ScrollTrigger.refresh();
+            setupCanvasSize();
+          }
+          updateDebug(
+            Math.max(currentFrame, 0),
+            currentFrame < 0 ? 0 : currentFrame / Math.max(FRAME_COUNT - 1, 1)
+          );
+        };
 
-      img.src = frameSrc(i);
+        img.onerror = function () {
+          loadedCount++;
+          if (loadedCount === FRAME_COUNT && typeof ScrollTrigger !== 'undefined') {
+            ScrollTrigger.refresh();
+            setupCanvasSize();
+          }
+        };
+
+        img.src = frameSrc(i);
+      }
     }
   }
 
@@ -154,7 +213,7 @@
       trigger: section,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: true,
+      scrub: 0.1,
       pin: stage,
       anticipatePin: 1,
       invalidateOnRefresh: true,
@@ -172,11 +231,11 @@
         const frameIndex = clamp(Math.floor(progress * (FRAME_COUNT - 1)), 0, FRAME_COUNT - 1);
         drawFrame(frameIndex);
         updateCallouts(progress);
+        updateScrollProduct(progress);
         updateDebug(frameIndex, progress);
       }
     });
 
-    // Ensure first paint after pin spacer is created
     requestAnimationFrame(function () {
       setupCanvasSize();
       if (currentFrame < 0) drawFrame(0);
@@ -189,6 +248,7 @@
     setupCanvasSize();
     drawFrame(0);
     updateCallouts(0.35);
+    updateScrollProduct(0.35);
     updateDebug(0, 0);
   }
 
@@ -205,6 +265,7 @@
     window.addEventListener('resize', function () {
       updateStackMode();
       setupCanvasSize();
+      updateScrollProduct(0);
     });
 
     preloadFrames(function () {
