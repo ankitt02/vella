@@ -77,11 +77,14 @@
 
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
-    const scale = Math.min(cw / iw, ch / ih);
+    const mobileFrame = window.innerWidth <= 720;
+    const scale = mobileFrame
+      ? Math.max(cw / iw, ch / ih)
+      : Math.min(cw / iw, ch / ih);
     const dw = iw * scale;
     const dh = ih * scale;
     const dx = (cw - dw) / 2;
-    const dy = (ch - dh) / 2;
+    const dy = (ch - dh) / 2 - (mobileFrame ? ch * 0.08 : 0);
 
     ctx.fillStyle = '#f7eee2';
     ctx.fillRect(0, 0, cw, ch);

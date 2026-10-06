@@ -48,25 +48,44 @@ const productScrollSlides = document.querySelector('.product-scroll-slides');
 const productScrollDots = document.querySelector('.product-scroll-dots');
 const productScrollCard = document.querySelector('.product-scroll-card');
 const productScrollAdd = document.querySelector('.product-scroll-add');
+const productScrollImage = document.querySelector('.product-scroll-image');
+const productScrollPrevious = document.querySelector('.product-scroll-prev');
+const productScrollNext = document.querySelector('.product-scroll-next');
 let productScrollFrame = 0;
+let productScrollIndex = -1;
 
-function updateProductScroll(progress) {
-  if (!productScrollSection || !productScrollSlides || !productScrollCard) return;
-  const featured = products.slice(0, 5);
-  const index = Math.min(Math.floor(progress * featured.length), featured.length - 1);
-  const product = featured[index];
-  productScrollSlides.style.transform = `translateX(-${index * 100}%)`;
-  productScrollCard.style.setProperty('--card-color', product.color);
-  productScrollCard.querySelector('.product-scroll-count').textContent = `${String(index + 1).padStart(2, '0')} / 05`;
-  productScrollCard.querySelector('.product-scroll-name').textContent = product.name;
-  productScrollCard.querySelector('.product-scroll-type').textContent = product.type;
-  productScrollCard.querySelector('.product-scroll-copy').textContent = product.category === 'Warm & Sensual'
+function productScrollDescription(product) {
+  return product.category === 'Warm & Sensual'
     ? 'A velvety blend of depth, warmth, and quiet seduction.'
     : product.category === 'Fresh & Radiant'
       ? 'A bright, polished fragrance with a radiant clean finish.'
       : 'A luminous fragrance with a soft, unforgettable trail.';
+}
+
+function updateProductScroll(progress, forcedIndex) {
+  if (!productScrollSection || !productScrollSlides || !productScrollCard) return;
+  const featured = products.slice(0, 5);
+  const index = forcedIndex === undefined
+    ? Math.min(Math.floor(progress * featured.length), featured.length - 1)
+    : Math.max(0, Math.min(forcedIndex, featured.length - 1));
+  const product = featured[index];
+  if (index === productScrollIndex && forcedIndex === undefined) return;
+  productScrollIndex = index;
+  productScrollSlides.style.setProperty('--active-index', index);
+  productScrollSlides.querySelectorAll('.product-scroll-slide').forEach((slide, slideIndex) => {
+    const offset = slideIndex - index;
+    slide.className = `product-scroll-slide position-${Math.max(-2, Math.min(2, offset))}`;
+    slide.dataset.index = slideIndex;
+  });
+  productScrollCard.style.setProperty('--card-color', product.color);
+  productScrollCard.querySelector('.product-scroll-count').textContent = `${String(index + 1).padStart(2, '0')} / 05`;
+  productScrollCard.querySelector('.product-scroll-name').textContent = product.name;
+  productScrollCard.querySelector('.product-scroll-type').textContent = product.type;
+  productScrollCard.querySelector('.product-scroll-copy').textContent = productScrollDescription(product);
   productScrollCard.querySelector('.product-scroll-price').textContent = product.price;
   productScrollAdd.dataset.id = product.file;
+  productScrollPrevious.disabled = index === 0;
+  productScrollNext.disabled = index === featured.length - 1;
   productScrollDots.querySelectorAll('button').forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === index));
 }
 
@@ -74,10 +93,10 @@ function initProductScroll() {
   if (!productScrollSection || !productScrollSlides || !productScrollDots) return;
   const featured = products.slice(0, 5);
   productScrollSlides.innerHTML = featured.map((product) => `
-    <div class="product-scroll-slide">
+    <button class="product-scroll-slide" type="button" data-index="${featured.indexOf(product)}" aria-label="Show ${product.name}">
       <img src="assets/${product.photo}" alt="${product.name} perfume">
       <span class="product-scroll-slide-label">${product.name}</span>
-    </div>`).join('');
+    </button>`).join('');
   productScrollDots.innerHTML = featured.map((product, index) => `<button type="button" aria-label="Show ${product.name}" data-index="${index}"></button>`).join('');
   const update = () => {
     productScrollFrame = 0;
@@ -88,12 +107,30 @@ function initProductScroll() {
   window.addEventListener('scroll', () => {
     if (!productScrollFrame) productScrollFrame = requestAnimationFrame(update);
   }, { passive: true });
+  function goToProduct(index) {
+    const top = productScrollSection.offsetTop + (productScrollSection.offsetHeight - window.innerHeight) * (index / (featured.length - 1));
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
   productScrollDots.addEventListener('click', (event) => {
     const dot = event.target.closest('button');
     if (!dot) return;
-    const index = Number(dot.dataset.index);
-    const top = productScrollSection.offsetTop + (productScrollSection.offsetHeight - window.innerHeight) * (index / (featured.length - 1));
-    window.scrollTo({ top, behavior: 'smooth' });
+    goToProduct(Number(dot.dataset.index));
+  });
+  productScrollSlides.addEventListener('click', (event) => {
+    const slide = event.target.closest('.product-scroll-slide');
+    if (slide) goToProduct(Number(slide.dataset.index));
+  });
+  productScrollPrevious.addEventListener('click', () => goToProduct(productScrollIndex - 1));
+  productScrollNext.addEventListener('click', () => goToProduct(productScrollIndex + 1));
+  productScrollImage.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      goToProduct(productScrollIndex - 1);
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      goToProduct(productScrollIndex + 1);
+    }
   });
   update();
 }
@@ -277,3 +314,12 @@ if (searchClear) {
 
 render();
 initProductScroll();
+
+const reviewsGrid = document.querySelector('.testimonials-grid');
+const reviewsPrevious = document.querySelector('.reviews-prev');
+const reviewsNext = document.querySelector('.reviews-next');
+if (reviewsGrid && reviewsPrevious && reviewsNext) {
+  const moveReviews = (direction) => reviewsGrid.scrollBy({ left: direction * reviewsGrid.clientWidth * 0.82, behavior: 'smooth' });
+  reviewsPrevious.addEventListener('click', () => moveReviews(-1));
+  reviewsNext.addEventListener('click', () => moveReviews(1));
+}
