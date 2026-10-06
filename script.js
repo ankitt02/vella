@@ -1,14 +1,14 @@
 const products = [
-  { id: 1, name: "L'Amour", type: 'EAU DE PARFUM', price: '$128.00', file: 'obsessed', photo: 'render-3.jpeg', color: '#e48baa', group: 'soft', category: 'Floral Bouquets' },
-  { id: 2, name: 'Rose Noir', type: 'EXTRAIT DE PARFUM', price: '$158.00', file: 'midnight-mood', photo: 'render-2.jpeg', color: '#a61c23', group: 'afterdark', category: 'Warm & Sensual' },
-  { id: 3, name: 'Eau de Lumière', type: 'EAU DE PARFUM', price: '$128.00', file: 'daydreamer', photo: 'render-5.jpeg', color: '#73b8e4', group: 'soft', category: 'Fresh & Radiant' },
-  { id: 4, name: 'Jardin Secrète', type: 'EAU DE PARFUM', price: '$118.00', file: 'soft-chaos', photo: 'render-4.jpeg', color: '#d8c7a9', group: 'soft', category: 'Floral Bouquets' },
-  { id: 5, name: 'Veloura Intense', type: 'EXTRAIT DE PARFUM', price: '$168.00', file: 'dark-desire', photo: 'render-1.jpeg', color: '#12382a', group: 'afterdark', category: 'Exclusive Collection' },
-  { id: 6, name: 'Main Character', type: 'EAU DE PARFUM', price: '$135.00', file: 'main-character', photo: 'render-6.jpeg', color: '#df6b22', group: 'bold', category: 'Fresh & Radiant' },
-  { id: 7, name: 'Gold Rush', type: 'EXTRAIT DE PARFUM', price: '$175.00', file: 'gold-rush', photo: 'render-6.jpeg', color: '#e49a16', group: 'bold', category: 'Exclusive Collection' },
-  { id: 8, name: 'Night Story', type: 'EAU DE PARFUM', price: '$145.00', file: 'night-story', photo: 'render-2.jpeg', color: '#10284a', group: 'afterdark', category: 'Warm & Sensual' },
-  { id: 9, name: 'Delulu', type: 'EAU DE PARFUM', price: '$125.00', file: 'delulu', photo: 'render-3.jpeg', color: '#aa80c1', group: 'soft', category: 'Floral Bouquets' },
-  { id: 10, name: '2 AM', type: 'EXTRAIT DE PARFUM', price: '$160.00', file: '2am', photo: 'render-1.jpeg', color: '#25252b', group: 'afterdark', category: 'Warm & Sensual' }
+  { id: 1, name: "L'Amour", type: 'EAU DE PARFUM', price: '$128.00', file: 'obsessed', photo: 'render-3.jpeg', carouselPhoto: 'carousel-bottle-01.jpg', color: '#e48baa', group: 'soft', category: 'Floral Bouquets' },
+  { id: 2, name: 'Rose Noir', type: 'EXTRAIT DE PARFUM', price: '$158.00', file: 'midnight-mood', photo: 'render-2.jpeg', carouselPhoto: 'carousel-bottle-02.jpg', color: '#a61c23', group: 'afterdark', category: 'Warm & Sensual' },
+  { id: 3, name: 'Eau de Lumière', type: 'EAU DE PARFUM', price: '$128.00', file: 'daydreamer', photo: 'render-5.jpeg', carouselPhoto: 'carousel-bottle-03.jpg', color: '#73b8e4', group: 'soft', category: 'Fresh & Radiant' },
+  { id: 4, name: 'Jardin Secrète', type: 'EAU DE PARFUM', price: '$118.00', file: 'soft-chaos', photo: 'render-4.jpeg', carouselPhoto: 'carousel-bottle-04.jpg', color: '#d8c7a9', group: 'soft', category: 'Floral Bouquets' },
+  { id: 5, name: 'Veloura Intense', type: 'EXTRAIT DE PARFUM', price: '$168.00', file: 'dark-desire', photo: 'render-1.jpeg', carouselPhoto: 'carousel-bottle-05.jpg', color: '#12382a', group: 'afterdark', category: 'Exclusive Collection' },
+  { id: 6, name: 'Main Character', type: 'EAU DE PARFUM', price: '$135.00', file: 'main-character', photo: 'product-main-character.jpg', color: '#df6b22', group: 'bold', category: 'Fresh & Radiant' },
+  { id: 7, name: 'Gold Rush', type: 'EXTRAIT DE PARFUM', price: '$175.00', file: 'gold-rush', photo: 'product-gold-rush.jpg', color: '#e49a16', group: 'bold', category: 'Exclusive Collection' },
+  { id: 8, name: 'Night Story', type: 'EAU DE PARFUM', price: '$145.00', file: 'night-story', photo: 'product-unavailable.jpg', color: '#10284a', group: 'afterdark', category: 'Warm & Sensual' },
+  { id: 9, name: 'Delulu', type: 'EAU DE PARFUM', price: '$125.00', file: 'delulu', photo: 'product-delulu.jpg', color: '#aa80c1', group: 'soft', category: 'Floral Bouquets' },
+  { id: 10, name: '2 AM', type: 'EXTRAIT DE PARFUM', price: '$160.00', file: '2am', photo: 'product-main-character.jpg', color: '#25252b', group: 'afterdark', category: 'Warm & Sensual' }
 ];
 
 const grid = document.querySelector('#product-grid');
@@ -74,8 +74,8 @@ function initProductScroll() {
   if (!productScrollSection || !productScrollSlides || !productScrollDots) return;
   const featured = products.slice(0, 5);
   productScrollSlides.innerHTML = featured.map((product) => `
-    <div class="product-scroll-slide">
-      <img src="assets/${product.photo}" alt="${product.name} perfume">
+      <div class="product-scroll-slide">
+        <img src="assets/${product.carouselPhoto || product.photo}" alt="${product.name} perfume">
       <span class="product-scroll-slide-label">${product.name}</span>
     </div>`).join('');
   productScrollDots.innerHTML = featured.map((product, index) => `<button type="button" aria-label="Show ${product.name}" data-index="${index}"></button>`).join('');

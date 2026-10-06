@@ -1482,7 +1482,6 @@ body { background: var(--paper); color: var(--ink); }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(.78) contrast(.93);
 }
 
 .product-scroll-slide-label {
@@ -1673,3 +1672,29 @@ body { background: var(--paper); color: var(--ink); }
 }
 
 .product-scroll-image { background: var(--paper-card); }
+
+/* Use the full-resolution product photography in the storefront. */
+.category-floral { background-image: url('assets/render-3.jpeg'); }
+.category-warm { background-image: url('assets/render-2.jpeg'); }
+.category-fresh { background-image: url('assets/render-5.jpeg'); }
+.category-exclusive { background-image: url('assets/render-1.jpeg'); }
+.editorial-media { background-image: url('assets/render-2.jpeg'); }
+
+.product-scroll-slide img {
+  object-fit: cover;
+  object-position: center 48%;
+}
+
+/* Keep the four collection portraits and story image aligned with the updated product set. */
+.category-floral { background-image: url('assets/collection-2am.jpg'); }
+.category-warm { background-image: url('assets/collection-night-theory.jpg'); }
+.category-fresh { background-image: url('assets/collection-elite-energy.jpg'); }
+.category-exclusive { background-image: url('assets/collection-dangerously-good.jpg'); }
+.category-card { height: auto; aspect-ratio: .82; }
+.editorial-media {
+  background-image: url('assets/story-soft-chaos.jpg');
+  background-size: auto 145%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #fff;
+}

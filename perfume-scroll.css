@@ -465,3 +465,49 @@
   background: #f7eee2;
   transition: none;
 }
+
+/* Contrast tuned for the five changing perfume scenes. */
+.perfume-scroll-copy {
+  --copy-title: #243c31;
+  --copy-meta: rgba(36, 60, 49, .76);
+  --copy-body: rgba(36, 60, 49, .9);
+  color: var(--copy-title);
+}
+
+.perfume-scroll-title {
+  color: var(--copy-title);
+  text-shadow: 0 2px 22px rgba(247, 238, 226, .72);
+  -webkit-text-stroke: .35px rgba(247, 238, 226, .28);
+}
+
+.perfume-scroll-number,
+.perfume-scroll-type {
+  color: var(--copy-meta);
+  text-shadow: 0 1px 10px rgba(247, 238, 226, .7);
+}
+
+.perfume-scroll-description {
+  color: var(--copy-body);
+  text-shadow: 0 1px 12px rgba(247, 238, 226, .74);
+}
+
+.perfume-scroll-copy[data-tone="light"] {
+  --copy-title: #fff3dc;
+  --copy-meta: rgba(255, 235, 194, .94);
+  --copy-body: rgba(255, 246, 229, .98);
+}
+
+.perfume-scroll-copy[data-tone="light"] .perfume-scroll-title {
+  text-shadow: 0 2px 5px rgba(14, 24, 18, .88), 0 0 24px rgba(14, 24, 18, .62);
+  -webkit-text-stroke: .35px rgba(22, 34, 25, .42);
+}
+
+.perfume-scroll-copy[data-tone="light"] .perfume-scroll-number,
+.perfume-scroll-copy[data-tone="light"] .perfume-scroll-type,
+.perfume-scroll-copy[data-tone="light"] .perfume-scroll-description {
+  text-shadow: 0 1px 4px rgba(14, 24, 18, .86), 0 0 16px rgba(14, 24, 18, .55);
+}
+
+.perfume-product-rail {
+  display: none;
+}

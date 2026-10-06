@@ -3,9 +3,11 @@
 
   const DEBUG = false;
   const FRAME_COUNT = 600;
-  const FRAME_PATH = 'assets/scrollframes/frame-';
+  const useOriginalFrames = new URLSearchParams(window.location.search).get('resolution') === '540p';
+  const FRAME_PATH = useOriginalFrames ? 'assets/scrollframes/frame-' : 'assets/scrollframes-1080/frame-';
   const FRAME_EXT = '.jpg';
   const SECTION_HEIGHT = '550vh';
+  const FRAME_CACHE_RADIUS = 12;
 
   const section = document.getElementById('perfume-scroll');
   const canvas = document.getElementById('perfume-canvas');
@@ -14,9 +16,15 @@
   const ctx = canvas.getContext('2d');
   const prefersReducedMotion = /(?:\?|&)reduceMotion=1(?:&|$)/.test(window.location.search);
   const frames = new Array(FRAME_COUNT);
+  const everLoaded = new Uint8Array(FRAME_COUNT);
   let loadedCount = 0;
   let currentFrame = -1;
+  let requestedTargetFrame = 0;
   let debugEl = null;
+  let pendingProgress = 0;
+  let renderScheduled = false;
+  let lastRenderTime = 0;
+  const FRAME_INTERVAL = 1000 / 90;
 
   function frameSrc(index) {
     return FRAME_PATH + String(index + 1).padStart(3, '0') + FRAME_EXT;
@@ -60,6 +68,50 @@
       }
     }
     return -1;
+  }
+
+  function loadFrame(index) {
+    if (index < 0 || index >= FRAME_COUNT || frames[index]) return;
+
+    const img = new Image();
+    frames[index] = img;
+    img.onload = function () {
+      if (!everLoaded[index]) {
+        everLoaded[index] = 1;
+        loadedCount++;
+      }
+      if (index === requestedTargetFrame || currentFrame < 0) {
+        currentFrame = -1;
+        drawFrame(requestedTargetFrame);
+      }
+      updateDebug(Math.max(currentFrame, 0), currentFrame < 0 ? 0 : currentFrame / Math.max(FRAME_COUNT - 1, 1));
+    };
+    img.onerror = function () {
+      if (frames[index] === img) frames[index] = null;
+    };
+    img.src = frameSrc(index);
+  }
+
+  function preloadWindow(targetIndex) {
+    requestedTargetFrame = clamp(targetIndex, 0, FRAME_COUNT - 1);
+    const firstKept = Math.max(0, requestedTargetFrame - FRAME_CACHE_RADIUS);
+    const lastKept = Math.min(FRAME_COUNT - 1, requestedTargetFrame + FRAME_CACHE_RADIUS);
+
+    for (let index = 0; index < FRAME_COUNT; index++) {
+      if (frames[index] && (index < firstKept || index > lastKept)) {
+        const img = frames[index];
+        img.onload = null;
+        img.onerror = null;
+        if (!img.complete) img.src = '';
+        frames[index] = null;
+      }
+    }
+
+    loadFrame(requestedTargetFrame);
+    for (let offset = 1; offset <= FRAME_CACHE_RADIUS; offset++) {
+      loadFrame(requestedTargetFrame + offset);
+      loadFrame(requestedTargetFrame - offset);
+    }
   }
 
   function drawFrame(index) {
@@ -117,6 +169,10 @@
     const product = products[productIndex];
     if (!product) return;
 
+    // The third fragrance plays over the darker, shadowed scene; switch its
+    // copy to warm ivory so it stays clear against that background.
+    copy.dataset.tone = productIndex === 2 ? 'light' : 'dark';
+
     products.forEach(function (item, index) {
       item.classList.toggle('is-active', index === productIndex);
     });
@@ -132,6 +188,33 @@
     copy.classList.add('is-entering');
   }
 
+  // Coalesce scroll updates and draw at no more than 90 frames per second.
+  // requestAnimationFrame still follows the display's refresh rate, so slower
+  // displays naturally render at their own maximum.
+  function renderScrollProgress(timestamp) {
+    if (timestamp - lastRenderTime < FRAME_INTERVAL) {
+      requestAnimationFrame(renderScrollProgress);
+      return;
+    }
+
+    lastRenderTime = timestamp;
+    renderScheduled = false;
+    const progress = pendingProgress;
+    const frameIndex = clamp(Math.floor(progress * (FRAME_COUNT - 1)), 0, FRAME_COUNT - 1);
+    preloadWindow(frameIndex);
+    drawFrame(frameIndex);
+    updateCallouts(progress);
+    updateScrollProduct(progress);
+    updateDebug(frameIndex, progress);
+  }
+
+  function queueScrollProgress(progress) {
+    pendingProgress = progress;
+    if (renderScheduled) return;
+    renderScheduled = true;
+    requestAnimationFrame(renderScrollProgress);
+  }
+
   function createDebugOverlay() {
     if (!DEBUG) return;
     debugEl = document.createElement('div');
@@ -142,60 +225,21 @@
   }
 
   function preloadFrames(onFirstFrame) {
-    let firstShown = false;
-
-    // Load frame 0 first so user gets visual feedback instantly
     const firstImg = new Image();
     frames[0] = firstImg;
     firstImg.onload = function () {
-      loadedCount++;
-      if (!firstShown) {
-        firstShown = true;
-        setupCanvasSize();
-        drawFrame(0);
-        if (onFirstFrame) onFirstFrame();
-      }
-      loadRemainingFrames();
+      everLoaded[0] = 1;
+      loadedCount = 1;
+      setupCanvasSize();
+      drawFrame(0);
+      if (onFirstFrame) onFirstFrame();
+      preloadWindow(0);
     };
     firstImg.onerror = function () {
-      loadedCount++;
-      loadRemainingFrames();
+      frames[0] = null;
+      preloadWindow(0);
     };
     firstImg.src = frameSrc(0);
-
-    function loadRemainingFrames() {
-      for (let i = 1; i < FRAME_COUNT; i++) {
-        const img = new Image();
-        frames[i] = img;
-
-        img.onload = function () {
-          loadedCount++;
-          if (i === currentFrame || currentFrame < 0) {
-            const saved = currentFrame < 0 ? 0 : currentFrame;
-            currentFrame = -1;
-            drawFrame(saved);
-          }
-          if (loadedCount === FRAME_COUNT && typeof ScrollTrigger !== 'undefined') {
-            ScrollTrigger.refresh();
-            setupCanvasSize();
-          }
-          updateDebug(
-            Math.max(currentFrame, 0),
-            currentFrame < 0 ? 0 : currentFrame / Math.max(FRAME_COUNT - 1, 1)
-          );
-        };
-
-        img.onerror = function () {
-          loadedCount++;
-          if (loadedCount === FRAME_COUNT && typeof ScrollTrigger !== 'undefined') {
-            ScrollTrigger.refresh();
-            setupCanvasSize();
-          }
-        };
-
-        img.src = frameSrc(i);
-      }
-    }
   }
 
   function initScrollAnimation() {
@@ -228,11 +272,7 @@
       },
       onUpdate: function (self) {
         const progress = clamp(self.progress, 0, 1);
-        const frameIndex = clamp(Math.floor(progress * (FRAME_COUNT - 1)), 0, FRAME_COUNT - 1);
-        drawFrame(frameIndex);
-        updateCallouts(progress);
-        updateScrollProduct(progress);
-        updateDebug(frameIndex, progress);
+        queueScrollProgress(progress);
       }
     });
 
